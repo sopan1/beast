@@ -1,0 +1,43 @@
+{
+  "appId": "com.beastbrowser.app",
+  "productName": "BeastBrowser",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "public/**/*",
+    "useragents/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "public",
+      "to": "public",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "useragents",
+      "to": "useragents", 
+      "filter": ["**/*"]
+    }
+  ],
+  "forceCodeSigning": false,
+  "afterSign": false,
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/free.png",
+    "sign": false,
+    "certificateFile": null,
+    "certificatePassword": null,
+    "verifyUpdateCodeSignature": false,
+    "requestedExecutionLevel": "asInvoker"
+  }
+}

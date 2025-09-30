@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 22 96% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 22 96% 50%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 22 96% 50%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 22 96% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 22 96% 50%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 22 96% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* BeastBrowser Custom Styles */
+.beast-gradient {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 50%, #0f172a 100%);
+}
+
+.beast-glow {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.beast-border {
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.beast-text-glow {
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+/* Profile Card Enhancements */
+.profile-card {
+  @apply bg-card border-2 border-transparent hover:border-primary/50 transition-all duration-300;
+  background: linear-gradient(145deg, #1f2937, #111827);
+}
+
+.profile-card:hover {
+  @apply beast-glow;
+  transform: translateY(-2px);
+}
+
+/* Button Enhancements */
+.btn-beast {
+  @apply bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 rounded-lg transition-all duration-300;
+}
+
+.btn-beast:hover {
+  @apply beast-glow;
+  transform: translateY(-1px);
+}
+
+/* Navigation Enhancements */
+.nav-beast {
+  @apply bg-secondary/80 backdrop-blur-sm border-b border-primary/20;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/60 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/80;
+}
+
+/* Loading Animation */
+.loading-beast {
+  @apply animate-pulse;
+  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: loading-beast 1.5s infinite;
+}
+
+@keyframes loading-beast {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Status Indicators */
+.status-online {
+  @apply bg-green-500;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.status-offline {
+  @apply bg-red-500;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-connecting {
+  @apply bg-yellow-500 animate-pulse;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+}
+
+/* Form Enhancements */
+.form-beast input, .form-beast select, .form-beast textarea {
+  @apply bg-secondary/50 border border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300;
+}
+
+.form-beast input:focus, .form-beast select:focus, .form-beast textarea:focus {
+  @apply beast-glow;
+}
+
+/* Modal Enhancements */
+.modal-beast {
+  @apply bg-card/95 backdrop-blur-lg border border-primary/20;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 50px rgba(249, 115, 22, 0.1);
+}
+
+/* Toast Notifications */
+.toast-beast {
+  @apply bg-card border border-primary/20 text-foreground;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(249, 115, 22, 0.1);
+}
+
+/* Code Blocks */
+.code-beast {
+  @apply bg-secondary/30 border border-primary/20 rounded-lg p-4 font-mono text-sm;
+}
+
+/* Beast Logo Animation */
+.beast-logo {
+  filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.3));
+  transition: all 0.3s ease;
+}
+
+.beast-logo:hover {
+  filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.6));
+  transform: scale(1.05);
+}
+/* Force BeastBrowser Color Scheme Override */
+* {
+  --tw-bg-opacity: 1 !important;
+}
+
+body, html, #root {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+.bg-background {
+  background-color: #ffffff !important;
+}
+
+.text-foreground {
+  color: #374151 !important;
+}
+
+/* Force button colors */
+button, .btn, [role="button"] {
+  background: linear-gradient(135deg, #ff6b35 0%, #e63946 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+button:hover, .btn:hover, [role="button"]:hover {
+  background: linear-gradient(135deg, #ff8c5a 0%, #ff4444 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* Force card colors */
+.card, [class*="card"], .bg-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #374151 !important;
+}
+
+/* Force input colors */
+input, textarea, select {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #374151 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #ff6b35 !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
+  outline: none !important;
+}
+
+/* Force link colors */
+a, .text-primary {
+  color: #ff6b35 !important;
+}
+
+a:hover {
+  color: #e63946 !important;
+}
+
+/* Force status colors */
+.text-green-500, .status-connected {
+  color: #10b981 !important;
+}
+
+.text-red-500, .status-disconnected {
+  color: #e63946 !important;
+}
+
+.text-orange-500, .status-connecting {
+  color: #ff6b35 !important;
+}

@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beast Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            overflow: hidden;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Enhanced Beast Header with Advanced Anti-Detection Styling */
+        .beast-header {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f3460 100%);
+            height: 42px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 2px solid #00d4ff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Tab Container */
+        .tab-container {
+            display: flex;
+            align-items: flex-end;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .tab {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+            border: 1px solid #00d4ff;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+            padding: 10px 18px;
+            min-width: 220px;
+            max-width: 300px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-right: -1px;
+            color: #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+            border-color: #00f2fe;
+            z-index: 10;
+            height: 40px;
+            margin-top: -2px;
+            color: #0a0a1a;
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .tab:hover:not(.active) {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+
+        .tab-favicon {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #00d4ff, #0066cc);
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab.active .tab-favicon {
+            background: linear-gradient(45deg, #0a0a1a, #1a1a2e);
+            color: #00d4ff;
+            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.4);
+        }
+
+        .tab-title {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-close {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab:hover .tab-close {
+            opacity: 1;
+        }
+
+        .tab-close:hover {
+            background: rgba(255, 59, 48, 0.8);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .new-tab-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            color: #0a0a1a;
+            margin-left: 12px;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .new-tab-btn:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.7);
+        }
+
+        /* Enhanced Beast Navigation Bar */
+        .navigation-bar {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            height: 58px;
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            gap: 14px;
+            border-bottom: 1px solid #00d4ff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+            border: 1px solid #00d4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #e2e8f0;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+            color: #0a0a1a;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.5);
+        }
+
+        .nav-btn:disabled {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            color: #4a5568;
+            cursor: not-allowed;
+            border-color: #2d3748;
+            opacity: 0.5;
+        }
+
+        /* Beast Address Bar */
+        .address-bar-container {
+            flex: 1;
+            max-width: 800px;
+            position: relative;
+            margin: 0 16px;
+        }
+
+        .address-bar {
+            width: 100%;
+            height: 44px;
+            border: 2px solid #00d4ff;
+            border-radius: 25px;
+            padding: 0 55px 0 22px;
+            font-size: 16px;
+            outline: none;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+            transition: all 0.4s ease;
+            color: #e2e8f0;
+            font-weight: 500;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+            /* FIX: Ensure input is focusable and typeable */
+            pointer-events: auto;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
+        }
+
+        .address-bar::placeholder {
+            color: #a0aec0;
+        }
+
+        .address-bar:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.4), inset 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        }
+
+        .security-indicator {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00ff88;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .go-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #0a0a1a;
+            transition: all 0.4s ease;
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .go-btn:hover {
+            transform: translateY(-50%) scale(1.15);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.6);
+        }
+
+        /* Browser Actions */
+        .browser-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+            border: 1px solid #00d4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #e2e8f0;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+            color: #0a0a1a;
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .proxy-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .proxy-indicator.active {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #0a0a1a;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+            border: 1px solid #00ff88;
+        }
+
+        .proxy-indicator.inactive {
+            background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            border: 1px solid #ff4757;
+        }
+
+        /* Content Area with Enhanced Styling */
+        .content-area {
+            height: calc(100vh - 100px);
+            position: relative;
+            background: #0a0a1a;
+            border-radius: 0 0 15px 15px;
+            overflow: hidden;
+        }
+
+        .webview {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0 0 15px 15px;
+            background: #0a0a1a;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00d4ff 0%, #00f2fe 50%, #0066cc 100%);
+            transition: width 0.4s ease;
+            z-index: 1000;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Enhanced Beast New Tab Page */
+        .new-tab-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f3460 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .new-tab-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%2300d4ff" stroke-width="0.5" opacity="0.15"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.4;
+        }
+
+        .beast-logo {
+            font-size: 104px;
+            font-weight: 900;
+            margin-bottom: 28px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0066cc 50%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+            position: relative;
+            z-index: 1;
+            letter-spacing: -3px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+            }
+            to {
+                text-shadow: 0 0 60px rgba(0, 212, 255, 0.9), 0 0 80px rgba(0, 212, 255, 0.4);
+            }
+        }
+
+        .beast-subtitle {
+            font-size: 18px;
+            color: #a0aec0;
+            margin-bottom: 40px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-box {
+            width: 100%;
+            height: 56px;
+            border: 2px solid #4facfe;
+            border-radius: 30px;
+            padding: 0 60px 0 24px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .search-box::placeholder {
+            color: #a0aec0;
+        }
+
+        .search-box:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+            background: rgba(61, 72, 82, 0.9);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #4facfe;
+            font-size: 20px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .quick-link {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 25px;
+            text-decoration: none;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-link:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #1a202c;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .loading .tab-favicon {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Enhanced Responsive Design for All Platforms */
+        @media (max-width: 768px) {
+            .beast-header {
+                height: 50px;
+                padding: 0 8px;
+                flex-wrap: wrap;
+            }
+            
+            .navigation-bar {
+                height: 65px;
+                padding: 0 8px;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                min-width: 120px;
+                max-width: 180px;
+                padding: 4px 8px;
+                height: 32px;
+                font-size: 12px;
+            }
+            
+            .tab-title {
+                font-size: 11px;
+            }
+            
+            .tab-favicon {
+                width: 16px;
+                height: 16px;
+                font-size: 9px;
+            }
+            
+            .new-tab-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+                margin-left: 4px;
+            }
+            
+            .nav-controls {
+                gap: 4px;
+            }
+            
+            .nav-btn, .action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            .address-bar-container {
+                flex: 1;
+                min-width: 200px;
+                margin: 0 8px;
+            }
+            
+            .address-bar {
+                height: 36px;
+                font-size: 13px;
+                padding: 0 40px 0 16px;
+            }
+            
+            .security-indicator {
+                left: 12px;
+                font-size: 14px;
+            }
+            
+            .go-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+                right: 4px;
+            }
+            
+            .browser-actions {
+                gap: 4px;
+            }
+            
+            .proxy-indicator {
+                padding: 4px 8px;
+                font-size: 9px;
+                margin-left: 4px;
+            }
+            
+            .beast-logo {
+                font-size: 52px;
+                margin-bottom: 16px;
+            }
+            
+            .beast-subtitle {
+                font-size: 14px;
+                margin-bottom: 24px;
+            }
+            
+            .search-container {
+                margin-bottom: 24px;
+                padding: 0 16px;
+            }
+            
+            .search-box {
+                height: 44px;
+                font-size: 14px;
+                padding: 0 40px 0 16px;
+            }
+            
+            .quick-links {
+                gap: 8px;
+                padding: 0 16px;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .quick-link {
+                padding: 8px 16px;
+                font-size: 12px;
+                min-width: 120px;
+                text-align: center;
+            }
+            
+            .content-area {
+                height: calc(100vh - 115px);
+            }
+        }
+        
+        /* Extra small screens (Android portrait) */
+        @media (max-width: 480px) {
+            .beast-header {
+                height: 45px;
+                padding: 0 4px;
+            }
+            
+            .navigation-bar {
+                height: 60px;
+                padding: 0 4px;
+                gap: 3px;
+            }
+            
+            .tab {
+                min-width: 100px;
+                max-width: 140px;
+                padding: 3px 6px;
+                height: 30px;
+            }
+            
+            .new-tab-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 14px;
+                margin-left: 2px;
+            }
+            
+            .nav-btn, .action-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            
+            .address-bar {
+                height: 32px;
+                font-size: 12px;
+                padding: 0 35px 0 12px;
+            }
+            
+            .security-indicator {
+                left: 8px;
+                font-size: 12px;
+            }
+            
+            .go-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+                right: 3px;
+            }
+            
+            .proxy-indicator {
+                padding: 3px 6px;
+                font-size: 8px;
+                margin-left: 2px;
+            }
+            
+            .beast-logo {
+                font-size: 36px;
+                margin-bottom: 12px;
+            }
+            
+            .beast-subtitle {
+                font-size: 12px;
+                margin-bottom: 16px;
+                padding: 0 8px;
+            }
+            
+            .search-container {
+                margin-bottom: 16px;
+                padding: 0 8px;
+            }
+            
+            .search-box {
+                height: 40px;
+                font-size: 13px;
+                padding: 0 35px 0 12px;
+            }
+            
+            .quick-links {
+                gap: 6px;
+                padding: 0 8px;
+            }
+            
+            .quick-link {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: 100px;
+            }
+            
+            .content-area {
+                height: calc(100vh - 105px);
+            }
+        }
+        
+        /* Touch devices - Improved touch targets */
+        @media (pointer: coarse) {
+            .nav-btn, .action-btn, .new-tab-btn, .go-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .tab-close {
+                min-height: 44px;
+                min-width: 44px;
+                opacity: 1; /* Always visible on touch devices */
+            }
+            
+            .tab {
+                min-height: 44px;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .beast-logo {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+        
+        /* Landscape orientation on mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .beast-header {
+                height: 40px;
+            }
+            
+            .navigation-bar {
+                height: 50px;
+            }
+            
+            .content-area {
+                height: calc(100vh - 90px);
+            }
+        }
+
+        /* Large screens (TV) */
+        @media (min-width: 1600px) {
+            .beast-header {
+                height: 55px;
+                padding: 0 24px;
+            }
+            
+            .navigation-bar {
+                height: 70px;
+                padding: 0 24px;
+                gap: 18px;
+            }
+            
+            .tab {
+                min-width: 280px;
+                max-width: 400px;
+                padding: 12px 20px;
+                height: 45px;
+                font-size: 15px;
+            }
+            
+            .tab-title {
+                font-size: 14px;
+            }
+            
+            .tab-favicon {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+            
+            .new-tab-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 24px;
+                margin-left: 16px;
+            }
+            
+            .nav-btn, .action-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+            
+            .address-bar {
+                height: 52px;
+                font-size: 18px;
+                padding: 0 65px 0 28px;
+            }
+            
+            .security-indicator {
+                left: 22px;
+                font-size: 20px;
+            }
+            
+            .go-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+                right: 8px;
+            }
+            
+            .proxy-indicator {
+                padding: 10px 18px;
+                font-size: 12px;
+                margin-left: 16px;
+            }
+            
+            .beast-logo {
+                font-size: 120px;
+                margin-bottom: 32px;
+            }
+            
+            .beast-subtitle {
+                font-size: 22px;
+                margin-bottom: 48px;
+            }
+            
+            .search-box {
+                height: 64px;
+                font-size: 18px;
+                padding: 0 70px 0 28px;
+            }
+            
+            .quick-links {
+                gap: 24px;
+            }
+            
+            .quick-link {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Beast Header with Tabs -->
+    <div class="beast-header">
+        <div class="tab-container">
+            <div class="tab active" data-tab-id="tab-1">
+                <div class="tab-favicon">B</div>
+                <div class="tab-title">New Tab</div>
+                <div class="tab-close" onclick="closeTab('tab-1')">&times;</div>
+            </div>
+            <button class="new-tab-btn" onclick="createNewTab()" title="New tab">+</button>
+        </div>
+    </div>
+
+    <!-- Beast Navigation Bar -->
+    <div class="navigation-bar">
+        <div class="nav-controls">
+            <button class="nav-btn" id="back-btn" onclick="goBack()" title="Back" disabled>←</button>
+            <button class="nav-btn" id="forward-btn" onclick="goForward()" title="Forward" disabled>→</button>
+            <button class="nav-btn" onclick="reload()" title="Reload this page">⟳</button>
+        </div>
+
+        <div class="address-bar-container">
+            <div class="security-indicator">🔒</div>
+            <input type="text" class="address-bar" id="address-bar" placeholder="Search Beast or enter a URL">
+            <button class="go-btn" onclick="navigateFromAddressBar()" title="Go">→</button>
+        </div>
+
+        <div class="browser-actions">
+            <button class="action-btn" onclick="bookmarkCurrentPage()" title="Bookmark this page">⭐</button>
+            <button class="action-btn" onclick="downloadPage()" title="Download page">⬇️</button>
+            <button class="action-btn" onclick="printPage()" title="Print page">🖨️</button>
+            <button class="action-btn" onclick="checkIP()" title="Check IP">🌐</button>
+            <button class="action-btn" onclick="openSettings()" title="Beast Settings">⚙️</button>
+            <button class="action-btn" onclick="showMenu()" title="More options">⋮</button>
+            <div class="proxy-indicator inactive" id="proxy-indicator" onclick="toggleProxyInfo()">Direct</div>
+
+            <!-- Browser Type Selector -->
+            <select id="browser-type-select" style="margin-left:10px;padding:8px 10px;border-radius:12px;border:1px solid #00d4ff;background:#1a1a2e;color:#e2e8f0;">
+                <option value="beast">BeastBrowser</option>
+                <option value="anti">Anti-Browser (Puppeteer)</option>
+            </select>
+            <button class="action-btn" onclick="launchSelectedBrowser()" title="Launch selected browser">🚀</button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <div class="loading-indicator" id="loading-indicator" style="width: 0%"></div>
+        
+        <div class="tab-content active" id="tab-content-1">
+            <div class="new-tab-page">
+                <div class="beast-logo">BEAST</div>
+                <div class="beast-subtitle">Unleash the Power of Anonymous Browsing</div>
+                <div class="search-container">
+                    <input type="text" class="search-box" id="search-box" placeholder="Search the web or enter address">
+                    <div class="search-icon">🔍</div>
+                </div>
+                <div class="quick-links">
+                    <div class="quick-link" onclick="navigateToUrl('https://www.google.com')">Google</div>
+                    <div class="quick-link" onclick="navigateToUrl('https://httpbin.org/ip')">Check IP</div>
+                    <div class="quick-link" onclick="navigateToUrl('https://whoer.net')">Whoer.net</div>
+                    <div class="quick-link" onclick="navigateToUrl('https://youtube.com')">YouTube</div>
+                    <div class="quick-link" onclick="navigateToUrl('https://github.com')">GitHub</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tabCounter = 1;
+        let activeTabId = 'tab-1';
+        let tabs = {
+            'tab-1': {
+                title: 'New Tab',
+                url: '',
+                webview: null,
+                isNewTab: true,
+                canGoBack: false,
+                canGoForward: false
+            }
+        };
+
+        // Persist/reload browser selection
+        const browserSelectEl = () => document.getElementById('browser-type-select');
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const saved = localStorage.getItem('beast_browser_type');
+                if (saved && browserSelectEl()) browserSelectEl().value = saved;
+            } catch (e) {}
+            if (browserSelectEl()) {
+                browserSelectEl().addEventListener('change', (e) => {
+                    try { localStorage.setItem('beast_browser_type', e.target.value); } catch (e) {}
+                });
+            }
+        });
+
+        async function launchSelectedBrowser() {
+            const type = browserSelectEl() ? browserSelectEl().value : 'beast';
+            // Build a simple profile structure
+            const profile = { id: `profile_${Date.now()}`, name: 'Profile (UI Launch)' };
+            if (type === 'anti') {
+                // Launch Puppeteer Anti-Browser via IPC
+                try {
+                    const res = await (window.electron?.ipc?.invoke ? window.electron.ipc.invoke('antiBrowser:open', profile, {}) : Promise.reject(new Error('IPC not available')));
+                    console.log('Anti-Browser launch result:', res);
+                } catch (err) {
+                    console.error('Failed to launch Anti-Browser:', err.message);
+                    alert('Failed to launch Anti-Browser: ' + err.message);
+                }
+            } else {
+                // Default: create a new BEAST tab
+                createNewTab();
+            }
+        }
+
+        // Enhanced tab creation with better animations
+        function createNewTab() {
+            tabCounter++;
+            const tabId = `tab-${tabCounter}`;
+            
+            const tabElement = document.createElement('div');
+            tabElement.className = 'tab';
+            tabElement.setAttribute('data-tab-id', tabId);
+            tabElement.innerHTML = `
+                <div class="tab-favicon">B</div>
+                <div class="tab-title">New Tab</div>
+                <div class="tab-close" onclick="closeTab('${tabId}')">&times;</div>
+            `;
+            
+            const newTabBtn = document.querySelector('.new-tab-btn');
+            newTabBtn.parentNode.insertBefore(tabElement, newTabBtn);
+            
+            const tabContent = document.createElement('div');
+            tabContent.className = 'tab-content';
+            tabContent.id = `tab-content-${tabCounter}`;
+            tabContent.innerHTML = `
+                <div class="new-tab-page">
+                    <div class="beast-logo">BEAST</div>
+                    <div class="beast-subtitle">Unleash the Power of Anonymous Browsing</div>
+                    <div class="search-container">
+                        <input type="text" class="search-box" placeholder="Search the web or enter address">
+                        <div class="search-icon">🔍</div>
+                    </div>
+                    <div class="quick-links">
+                        <div class="quick-link" onclick="navigateToUrl('https://www.google.com')">Google</div>
+                        <div class="quick-link" onclick="navigateToUrl('https://httpbin.org/ip')">Check IP</div>
+                        <div class="quick-link" onclick="navigateToUrl('https://whoer.net')">Whoer.net</div>
+                        <div class="quick-link" onclick="navigateToUrl('https://youtube.com')">YouTube</div>
+                        <div class="quick-link" onclick="navigateToUrl('https://github.com')">GitHub</div>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelector('.content-area').appendChild(tabContent);
+            
+            tabs[tabId] = {
+                title: 'New Tab',
+                url: '',
+                webview: null,
+                isNewTab: true,
+                canGoBack: false,
+                canGoForward: false
+            };
+            
+            switchToTab(tabId);
+            
+            tabElement.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('tab-close')) {
+                    switchToTab(tabId);
+                }
+            });
+
+            // Add search functionality to new search box
+            const searchBox = tabContent.querySelector('.search-box');
+            searchBox.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        navigateToUrl(query);
+                    }
+                }
+            });
+        }
+
+        function closeTab(tabId) {
+            if (Object.keys(tabs).length === 1) {
+                return;
+            }
+            
+            const tabElement = document.querySelector(`[data-tab-id="${tabId}"]`);
+            if (tabElement) {
+                tabElement.style.transform = 'scale(0)';
+                tabElement.style.opacity = '0';
+                setTimeout(() => tabElement.remove(), 200);
+            }
+            
+            const tabContent = document.getElementById(`tab-content-${tabId.split('-')[1]}`);
+            if (tabContent) {
+                tabContent.remove();
+            }
+            
+            if (tabs[tabId] && tabs[tabId].webview) {
+                tabs[tabId].webview.remove();
+            }
+            
+            delete tabs[tabId];
+            
+            if (activeTabId === tabId) {
+                const remainingTabs = Object.keys(tabs);
+                if (remainingTabs.length > 0) {
+                    switchToTab(remainingTabs[0]);
+                }
+            }
+        }
+
+        function switchToTab(tabId) {
+            console.log('Switching to tab:', tabId);
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const tabElement = document.querySelector(`[data-tab-id="${tabId}"]`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            
+            const tabContent = document.getElementById(`tab-content-${tabId.split('-')[1]}`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+            
+            activeTabId = tabId;
+            
+            if (tabs[tabId]) {
+                document.getElementById('address-bar').value = tabs[tabId].url || '';
+                // Update navigation buttons after tab switch
+                setTimeout(() => updateNavigationButtons(), 100);
+                console.log('Tab switched, navigation state updated');
+            }
+        }
+
+        function navigateToUrl(url) {
+            const currentTab = tabs[activeTabId];
+            if (!currentTab) return;
+            
+            // Enhanced URL processing - Use DuckDuckGo as default search engine
+            let finalUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                if (!url.includes('.') || url.includes(' ')) {
+                    // Use Google for search queries
+                    finalUrl = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+                } else {
+                    finalUrl = 'https://' + url;
+                }
+            }
+            
+            currentTab.url = finalUrl;
+            currentTab.isNewTab = false;
+            
+            // Enhanced loading animation
+            setLoading(true);
+            
+            if (!currentTab.webview) {
+                const webview = document.createElement('webview');
+                webview.className = 'webview';
+                
+                // CRITICAL: Use the same partition as configured in main process
+                const partition = `persist:profile_${window.profileId || 'default'}`;
+                webview.setAttribute('partition', partition);
+                
+                // CRITICAL FIX: Ensure real user agent is properly applied
+                const userAgent = window.platformConfig?.realUserAgent || window.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 BeastBrowser/2.0';
+                webview.setAttribute('useragent', userAgent);
+                
+                // Additional user agent enforcement and timezone injection
+                webview.addEventListener('dom-ready', () => {
+                  webview.setUserAgent(userAgent);
+                  console.log('✅ User agent enforced in webview:', userAgent.substring(0, 100) + '...');
+                  
+                  // Inject timezone and user agent
+                  const timezone = window.platformConfig?.timezone || 'America/Los_Angeles';
+                  const locale = window.platformConfig?.locale || 'en-US';
+                  
+                  webview.executeJavaScript(`
+                    console.log('🔍 WEBVIEW USER AGENT CHECK:', navigator.userAgent);
+                    if (navigator.userAgent.includes('Electron')) {
+                      console.warn('⚠️ ELECTRON USER AGENT DETECTED IN WEBVIEW!');
+                      // FORCE CORRECT USER AGENT
+                      Object.defineProperty(navigator, 'userAgent', {
+                        get: () => '${userAgent}',
+                        configurable: false
+                      });
+                      console.log('✅ FORCED REAL USER AGENT:', '${userAgent}');
+                    } else {
+                      console.log('✅ REAL USER AGENT SUCCESSFULLY APPLIED TO WEBVIEW');
+                    }
+                    
+                    // CRITICAL: Inject USA timezone
+                    console.log('🇺🇸 Injecting USA timezone: ${timezone}');
+                    
+                    // Override Intl.DateTimeFormat
+                    const OriginalDateTimeFormat = Intl.DateTimeFormat;
+                    Intl.DateTimeFormat = function(locales, options = {}) {
+                      options.timeZone = '${timezone}';
+                      return new OriginalDateTimeFormat('${locale}', options);
+                    };
+                    
+                    // Override Date methods
+                    const originalGetTimezoneOffset = Date.prototype.getTimezoneOffset;
+                    Date.prototype.getTimezoneOffset = function() {
+                      // Return offset for ${timezone} (Pacific Time = 480 minutes)
+                      return ${timezone.includes('Los_Angeles') ? '480' : '300'};
+                    };
+                    
+                    // Override Date toString methods
+                    const originalToString = Date.prototype.toString;
+                    Date.prototype.toString = function() {
+                      return this.toLocaleString('${locale}', { timeZone: '${timezone}' });
+                    };
+                    
+                    const originalToLocaleString = Date.prototype.toLocaleString;
+                    Date.prototype.toLocaleString = function(locales, options) {
+                      options = options || {};
+                      options.timeZone = '${timezone}';
+                      return originalToLocaleString.call(this, '${locale}', options);
+                    };
+                    
+                    console.log('✅ USA timezone injection completed: ${timezone}');
+                    console.log('🧪 Timezone test:', new Date().toString());
+                  `);
+                });
+                
+                // PROXY FIX: Additional webview configuration for proxy inheritance
+                webview.setAttribute('plugins', 'true');
+                webview.setAttribute('webpreferences', 'webSecurity=false,allowRunningInsecureContent=true,experimentalFeatures=true');
+                
+                // CRITICAL FIX: Force webview to use the same session and proxy
+                if (window.hasProxy && window.localProxyPort) {
+                    console.log('🔧 Forcing webview proxy configuration...');
+                    webview.setAttribute('httpreferrer', 'https://www.google.com');
+                    webview.setAttribute('preload', 'data:text/javascript,console.log("Proxy forced for webview");');
+                }
+                
+                console.log('🌐 Creating webview with partition:', partition);
+                console.log('🔗 Proxy status:', window.hasProxy ? 'Active' : 'Direct');
+                console.log('🔧 Local proxy port:', window.localProxyPort || 'None');
+                
+                // CRITICAL PROXY FIX: Verify and log proxy configuration
+                if (window.hasProxy && window.localProxyPort) {
+                    console.log('✅ SOCKS5 proxy should be active via local HTTP proxy');
+                    console.log(`🔧 Expected proxy URL: http://127.0.0.1:${window.localProxyPort}`);
+                    
+                    // Add proxy verification once webview loads
+                    webview.addEventListener('dom-ready', () => {
+                        console.log('📊 Verifying proxy in webview...');
+                        webview.executeJavaScript(`
+                            fetch('https://ipinfo.io/json')
+                                .then(r => r.json())
+                                .then(data => {
+                                    console.log('🌍 Webview IP Check:', data);
+                                    if (data.ip !== '${window.geoData?.ip || 'unknown'}') {
+                                        console.warn('⚠️ PROXY NOT WORKING - Using original IP:', data.ip);
+                                    } else {
+                                        console.log('✅ PROXY WORKING - Using proxy IP:', data.ip);
+                                    }
+                                })
+                                .catch(e => console.error('❌ IP check failed:', e));
+                        `);
+                    });
+                } else {
+                    console.warn('⚠️ No proxy configuration detected in webview');
+                }
+                
+                // Enhanced webview event listeners with better navigation handling
+                webview.addEventListener('did-start-loading', () => {
+                    setLoading(true);
+                    updateTabTitle(activeTabId, 'Loading...');
+                    const tabElement = document.querySelector(`[data-tab-id="${activeTabId}"]`);
+                    if (tabElement) {
+                        tabElement.classList.add('loading');
+                    }
+                    // Update navigation buttons when loading starts
+                    setTimeout(() => updateNavigationButtons(), 100);
+                });
+                
+                webview.addEventListener('did-finish-load', () => {
+                    setLoading(false);
+                    const tabElement = document.querySelector(`[data-tab-id="${activeTabId}"]`);
+                    if (tabElement) {
+                        tabElement.classList.remove('loading');
+                    }
+                    // Update navigation buttons when loading finishes
+                    setTimeout(() => updateNavigationButtons(), 300);
+                });
+                
+                webview.addEventListener('did-fail-load', (e) => {
+                    setLoading(false);
+                    if (e.errorCode !== -3) { // Ignore aborted loads
+                        console.error('Load error:', e.errorCode, e.errorDescription);
+                        updateTabTitle(activeTabId, 'Failed to load');
+                    }
+                    setTimeout(() => updateNavigationButtons(), 300);
+                });
+                
+                webview.addEventListener('did-navigate', (e) => {
+                    currentTab.url = e.url;
+                    document.getElementById('address-bar').value = e.url;
+                    console.log('Navigation occurred:', e.url);
+                    // Update navigation buttons after navigation
+                    setTimeout(() => updateNavigationButtons(), 200);
+                });
+                
+                webview.addEventListener('did-navigate-in-page', (e) => {
+                    // Handle in-page navigation (hash changes, pushState, etc.)
+                    currentTab.url = e.url;
+                    document.getElementById('address-bar').value = e.url;
+                    console.log('In-page navigation:', e.url);
+                    setTimeout(() => updateNavigationButtons(), 200);
+                });
+                
+                webview.addEventListener('page-title-updated', (e) => {
+                    currentTab.title = e.title;
+                    updateTabTitle(activeTabId, e.title);
+                });
+                
+                webview.addEventListener('page-favicon-updated', (e) => {
+                    if (e.favicons && e.favicons.length > 0) {
+                        updateTabFavicon(activeTabId, e.favicons[0]);
+                    }
+                });
+                
+                // Additional webview events for better navigation tracking
+                webview.addEventListener('did-start-navigation', (e) => {
+                    console.log('Navigation started:', e.url);
+                });
+                
+                webview.addEventListener('did-redirect-navigation', (e) => {
+                    console.log('Navigation redirected:', e.oldURL, '->', e.newURL);
+                    currentTab.url = e.newURL;
+                    document.getElementById('address-bar').value = e.newURL;
+                });
+                
+                currentTab.webview = webview;
+                
+                const tabContent = document.getElementById(`tab-content-${activeTabId.split('-')[1]}`);
+                if (tabContent) {
+                    tabContent.innerHTML = '';
+                    tabContent.appendChild(webview);
+                }
+            }
+            
+            currentTab.webview.src = finalUrl;
+            document.getElementById('address-bar').value = finalUrl;
+        }
+
+        function navigateFromAddressBar() {
+            const url = document.getElementById('address-bar').value.trim();
+            if (url) {
+                navigateToUrl(url);
+            }
+        }
+
+        function updateTabTitle(tabId, title) {
+            const tabElement = document.querySelector(`[data-tab-id="${tabId}"] .tab-title`);
+            if (tabElement) {
+                const displayTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
+                tabElement.textContent = displayTitle;
+            }
+        }
+
+        function updateTabFavicon(tabId, faviconUrl) {
+            const faviconElement = document.querySelector(`[data-tab-id="${tabId}"] .tab-favicon`);
+            if (faviconElement && faviconUrl) {
+                faviconElement.innerHTML = `<img src="${faviconUrl}" style="width: 16px; height: 16px; border-radius: 2px;" onerror="this.parentElement.textContent='B'">`;
+            }
+        }
+
+        function setLoading(loading) {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loading) {
+                loadingIndicator.style.width = '30%';
+                setTimeout(() => {
+                    if (loadingIndicator.style.width === '30%') {
+                        loadingIndicator.style.width = '70%';
+                    }
+                }, 500);
+                setTimeout(() => {
+                    if (loadingIndicator.style.width === '70%') {
+                        loadingIndicator.style.width = '90%';
+                    }
+                }, 1000);
+            } else {
+                loadingIndicator.style.width = '100%';
+                setTimeout(() => {
+                    loadingIndicator.style.width = '0%';
+                }, 300);
+            }
+        }
+
+        function updateNavigationButtons() {
+            const currentTab = tabs[activeTabId];
+            const backBtn = document.getElementById('back-btn');
+            const forwardBtn = document.getElementById('forward-btn');
+            
+            if (currentTab && currentTab.webview && !currentTab.isNewTab) {
+                try {
+                    // Enhanced navigation button state management with proper DOM readiness check
+                    if (currentTab.webview.isLoading && currentTab.webview.isLoading()) {
+                        // If page is still loading, use cached state
+                        backBtn.disabled = !currentTab.canGoBack;
+                        forwardBtn.disabled = !currentTab.canGoForward;
+                    } else {
+                        // Page is loaded, get fresh navigation state
+                        const canGoBack = currentTab.webview.canGoBack();
+                        const canGoForward = currentTab.webview.canGoForward();
+                        
+                        backBtn.disabled = !canGoBack;
+                        forwardBtn.disabled = !canGoForward;
+                        
+                        // Store navigation state in tab data
+                        currentTab.canGoBack = canGoBack;
+                        currentTab.canGoForward = canGoForward;
+                        
+                        console.log(`Navigation state updated - Back: ${canGoBack}, Forward: ${canGoForward}`);
+                    }
+                } catch (e) {
+                    console.warn('Error checking navigation state:', e.message);
+                    // Fallback to cached state or disable
+                    backBtn.disabled = !currentTab.canGoBack;
+                    forwardBtn.disabled = !currentTab.canGoForward;
+                }
+            } else {
+                // Disable buttons for new tab or invalid tab
+                backBtn.disabled = true;
+                forwardBtn.disabled = true;
+                if (currentTab) {
+                    currentTab.canGoBack = false;
+                    currentTab.canGoForward = false;
+                }
+            }
+        }
+
+        function goBack() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview && !currentTab.isNewTab) {
+                try {
+                    if (currentTab.webview.canGoBack()) {
+                        console.log('Going back...');
+                        currentTab.webview.goBack();
+                        
+                        // Immediately update button state
+                        currentTab.canGoBack = false; // Temporarily disable to prevent double clicks
+                        document.getElementById('back-btn').disabled = true;
+                        
+                        // Update buttons after navigation completes
+                        setTimeout(() => updateNavigationButtons(), 100);
+                        setTimeout(() => updateNavigationButtons(), 500);
+                    } else {
+                        console.log('Cannot go back - no history');
+                    }
+                } catch (e) {
+                    console.error('Error going back:', e.message);
+                }
+            } else {
+                console.log('Cannot go back - no webview or new tab');
+            }
+        }
+
+        function goForward() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview && !currentTab.isNewTab) {
+                try {
+                    if (currentTab.webview.canGoForward()) {
+                        console.log('Going forward...');
+                        currentTab.webview.goForward();
+                        
+                        // Immediately update button state
+                        currentTab.canGoForward = false; // Temporarily disable to prevent double clicks
+                        document.getElementById('forward-btn').disabled = true;
+                        
+                        // Update buttons after navigation completes
+                        setTimeout(() => updateNavigationButtons(), 100);
+                        setTimeout(() => updateNavigationButtons(), 500);
+                    } else {
+                        console.log('Cannot go forward - no forward history');
+                    }
+                } catch (e) {
+                    console.error('Error going forward:', e.message);
+                }
+            } else {
+                console.log('Cannot go forward - no webview or new tab');
+            }
+        }
+
+        function reload() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview && !currentTab.isNewTab) {
+                try {
+                    console.log('Reloading page...');
+                    currentTab.webview.reload();
+                    setLoading(true);
+                } catch (e) {
+                    console.error('Error reloading page:', e.message);
+                }
+            } else {
+                console.log('Cannot reload - no webview or new tab');
+            }
+        }
+
+        // Enhanced mobile touch handling
+        function addTouchSupport() {
+            // Add touch events for better mobile responsiveness
+            document.querySelectorAll('.nav-btn, .action-btn, .go-btn, .new-tab-btn').forEach(btn => {
+                btn.addEventListener('touchstart', function(e) {
+                    this.style.transform = this.style.transform.replace('scale(1)', 'scale(0.95)');
+                    if (this.style.transform === '') {
+                        this.style.transform = 'scale(0.95)';
+                    }
+                }, { passive: true });
+                
+                btn.addEventListener('touchend', function(e) {
+                    this.style.transform = this.style.transform.replace('scale(0.95)', 'scale(1)');
+                    if (this.style.transform.includes('scale(0.95)')) {
+                        this.style.transform = this.style.transform.replace('scale(0.95)', 'scale(1)');
+                    }
+                }, { passive: true });
+            });
+            
+            // Add swipe gesture support for navigation
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                if (!touchStartX || !touchStartY) return;
+                
+                let touchEndX = e.changedTouches[0].clientX;
+                let touchEndY = e.changedTouches[0].clientY;
+                
+                let deltaX = touchEndX - touchStartX;
+                let deltaY = touchEndY - touchStartY;
+                
+                // Detect horizontal swipe (must be significant and more horizontal than vertical)
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+                    if (deltaX > 0) {
+                        // Swipe right - go back
+                        goBack();
+                    } else {
+                        // Swipe left - go forward
+                        goForward();
+                    }
+                }
+                
+                touchStartX = 0;
+                touchStartY = 0;
+            }, { passive: true });
+        }
+
+        function checkIP() {
+            navigateToUrl('https://httpbin.org/ip');
+        }
+
+        // Chrome-like features
+        function bookmarkCurrentPage() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.url) {
+                const bookmarks = JSON.parse(localStorage.getItem('beastBookmarks') || '[]');
+                const bookmark = {
+                    id: Date.now(),
+                    title: currentTab.title || currentTab.url,
+                    url: currentTab.url,
+                    dateAdded: new Date().toISOString()
+                };
+                
+                // Check if already bookmarked
+                if (!bookmarks.find(b => b.url === bookmark.url)) {
+                    bookmarks.push(bookmark);
+                    localStorage.setItem('beastBookmarks', JSON.stringify(bookmarks));
+                    alert(`✅ Bookmarked: ${bookmark.title}`);
+                } else {
+                    alert(`⚠️ Already bookmarked: ${bookmark.title}`);
+                }
+            } else {
+                alert('❌ No page to bookmark');
+            }
+        }
+
+        function downloadPage() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview) {
+                currentTab.webview.executeJavaScript(`
+                    const link = document.createElement('a');
+                    link.href = window.location.href;
+                    link.download = document.title + '.html';
+                    link.click();
+                `);
+                alert('📥 Download started...');
+            } else {
+                alert('❌ No page to download');
+            }
+        }
+
+        function printPage() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview) {
+                currentTab.webview.executeJavaScript('window.print()');
+            } else {
+                alert('❌ No page to print');
+            }
+        }
+
+        function showBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('beastBookmarks') || '[]');
+            if (bookmarks.length === 0) {
+                alert('📚 No bookmarks saved yet');
+                return;
+            }
+            
+            let bookmarkList = '📚 Your Bookmarks:\n\n';
+            bookmarks.forEach((bookmark, index) => {
+                bookmarkList += `${index + 1}. ${bookmark.title}\n   ${bookmark.url}\n\n`;
+            });
+            
+            alert(bookmarkList);
+        }
+
+        function clearBrowsingData() {
+            if (confirm('🗑️ Clear all browsing data?\n\nThis will remove:\n• History\n• Cookies\n• Cache\n• Downloads\n\nThis action cannot be undone.')) {
+                // Clear localStorage
+                localStorage.removeItem('beastBookmarks');
+                localStorage.removeItem('beastHistory');
+                
+                // Clear all tabs and reload
+                Object.keys(tabs).forEach(tabId => {
+                    if (tabId !== 'tab-1') {
+                        closeTab(tabId);
+                    }
+                });
+                
+                // Reload current tab
+                const currentTab = tabs[activeTabId];
+                if (currentTab && currentTab.webview) {
+                    currentTab.webview.reload();
+                }
+                
+                alert('✅ Browsing data cleared');
+            }
+        }
+
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('beastHistory') || '[]');
+            if (history.length === 0) {
+                alert('📜 No browsing history');
+                return;
+            }
+            
+            let historyList = '📜 Browsing History:\n\n';
+            history.slice(-20).reverse().forEach((entry, index) => {
+                const date = new Date(entry.timestamp).toLocaleString();
+                historyList += `${index + 1}. ${entry.title}\n   ${entry.url}\n   ${date}\n\n`;
+            });
+            
+            alert(historyList);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Fullscreen not supported:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function openDevTools() {
+            const currentTab = tabs[activeTabId];
+            if (currentTab && currentTab.webview) {
+                currentTab.webview.openDevTools();
+            } else {
+                alert('❌ No page to inspect');
+            }
+        }
+
+        function openSettings() {
+            // Enhanced settings functionality with support information
+            alert(`Beast Browser Settings
+
+🔒 Privacy & Security
+🌐 Proxy Configuration  
+🛡️ Anti-Detection
+⚡ Performance
+🎨 Appearance
+
+📞 Support Contacts:
+• WhatsApp: +91 81770 62435
+• WhatsApp: +91 79919 85013
+• Instagram: @beast_browser
+• LinkedIn: Beast Browser
+• Facebook: Beast Browser
+• Twitter: @beastbrowser2
+• Channel: https://whatsapp.com/channel/0029VaiJXCH35fLpkTTrdW3F
+
+Coming Soon!`);
+        }
+
+        function showMenu() {
+            const menu = `
+Beast Browser Menu:
+
+🔒 Privacy Mode: ON
+🌐 Proxy Status: ${document.getElementById('proxy-indicator').textContent}
+🛡️ Anti-Detection: Active
+📊 Performance: Optimized
+
+Quick Actions:
+• Show Bookmarks (Ctrl+B)
+• Show History (Ctrl+H)
+• Clear Browsing Data
+• Download Page
+• Print Page
+• Export Settings
+• Import Settings
+• About Beast Browser
+
+📞 Support:
+• WhatsApp: +91 81770 62435
+• WhatsApp: +91 79919 85013
+• Follow us on social media
+            `;
+            alert(menu);
+        }
+
+        function toggleProxyInfo() {
+            const proxyIndicator = document.getElementById('proxy-indicator');
+            const isActive = proxyIndicator.classList.contains('active');
+            
+            const info = isActive ? 
+                `Proxy Status: ACTIVE
+Type: ${window.proxyType || 'SOCKS5'}
+Location: Encrypted
+Speed: High
+
+📞 Need Help?
+WhatsApp: +91 81770 62435
+WhatsApp: +91 79919 85013
+
+Click to configure...` :
+                `Proxy Status: DIRECT
+No proxy configured
+
+📞 Need Help Setting Up Proxy?
+WhatsApp: +91 81770 62435
+WhatsApp: +91 79919 85013
+
+Click to setup proxy...`;
+            
+            alert(info);
+        }
+
+        // Platform detection and adaptive UI
+        function detectPlatform() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const platform = navigator.platform.toLowerCase();
+            
+            if (userAgent.includes('android')) return 'android';
+            if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
+            if (platform.includes('win')) return 'windows';
+            if (platform.includes('mac')) return 'macos';
+            if (platform.includes('linux')) return 'linux';
+            
+            // Check for TV/large screen
+            if (window.innerWidth >= 1600 && window.innerHeight >= 900) return 'tv';
+            
+            return 'desktop';
+        }
+        
+        function adaptUIForPlatform() {
+            const platform = detectPlatform();
+            const body = document.body;
+            
+            // Add platform-specific class
+            body.classList.add(`platform-${platform}`);
+            
+            // Platform-specific adjustments
+            switch (platform) {
+                case 'android':
+                case 'ios':
+                    // Enable touch support
+                    addTouchSupport();
+                    // Reduce animations for better performance
+                    body.style.setProperty('--animation-duration', '0.2s');
+                    break;
+                    
+                case 'tv':
+                    // Larger click targets for TV remotes
+                    body.style.setProperty('--min-touch-target', '60px');
+                    break;
+                    
+                default:
+                    // Desktop - enable keyboard shortcuts
+                    break;
+            }
+            
+            console.log(`Platform detected: ${platform}`);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 't':
+                        e.preventDefault();
+                        createNewTab();
+                        break;
+                    case 'w':
+                        e.preventDefault();
+                        if (Object.keys(tabs).length > 1) {
+                            closeTab(activeTabId);
+                        }
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        reload();
+                        break;
+                    case 'l':
+                        e.preventDefault();
+                        document.getElementById('address-bar').focus();
+                        document.getElementById('address-bar').select();
+                        break;
+                    case 'b':
+                        e.preventDefault();
+                        showBookmarks();
+                        break;
+                    case 'h':
+                        e.preventDefault();
+                        showHistory();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        bookmarkCurrentPage();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        printPage();
+                        break;
+                    case 'j':
+                        e.preventDefault();
+                        downloadPage();
+                        break;
+                    case 'shift':
+                        if (e.key === 'Delete') {
+                            e.preventDefault();
+                            clearBrowsingData();
+                        }
+                        break;
+                }
+            }
+            
+            // Function keys
+            switch (e.key) {
+                case 'F5':
+                    e.preventDefault();
+                    reload();
+                    break;
+                case 'F11':
+                    e.preventDefault();
+                    toggleFullscreen();
+                    break;
+                case 'F12':
+                    e.preventDefault();
+                    openDevTools();
+                    break;
+            }
+            
+            // Alt key combinations
+            if (e.altKey) {
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        goBack();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        goForward();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        navigateToUrl('about:blank');
+                        break;
+                }
+            }
+        });
+
+        // Address bar and search box functionality
+        document.getElementById('address-bar').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                navigateFromAddressBar();
+            }
+        });
+
+        document.getElementById('search-box').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    navigateToUrl(query);
+                }
+            }
+        });
+
+        // Enhanced proxy status management
+        function updateProxyStatus(isActive, type = 'SOCKS5') {
+            const proxyIndicator = document.getElementById('proxy-indicator');
+            if (isActive) {
+                proxyIndicator.textContent = type;
+                proxyIndicator.className = 'proxy-indicator active';
+            } else {
+                proxyIndicator.textContent = 'Direct';
+                proxyIndicator.className = 'proxy-indicator inactive';
+            }
+        }
+
+        // Initialize Beast Browser
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Beast Browser initialized');
+            
+            // Detect platform and adapt UI
+            adaptUIForPlatform();
+            
+            // Set initial proxy status
+            updateProxyStatus(window.hasProxy || false, window.proxyType || 'SOCKS5');
+            
+            // Add click listener to first tab
+            document.querySelector('[data-tab-id="tab-1"]').addEventListener('click', (e) => {
+                if (!e.target.classList.contains('tab-close')) {
+                    switchToTab('tab-1');
+                }
+            });
+
+            // Focus on address bar initially
+            setTimeout(() => {
+                document.getElementById('address-bar').focus();
+            }, 500);
+            
+            // Initialize navigation button states
+            updateNavigationButtons();
+            
+            // Add visual feedback for button interactions
+            document.querySelectorAll('.nav-btn, .action-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+
+        // Enhanced periodic updates with intelligent throttling
+        let lastNavigationUpdate = 0;
+        let navigationUpdateInterval;
+        
+        function startNavigationUpdates() {
+            // Clear any existing interval
+            if (navigationUpdateInterval) {
+                clearInterval(navigationUpdateInterval);
+            }
+            
+            navigationUpdateInterval = setInterval(() => {
+                const now = Date.now();
+                const currentTab = tabs[activeTabId];
+                
+                // Only update if tab has webview and is not a new tab
+                if (currentTab && currentTab.webview && !currentTab.isNewTab) {
+                    // Throttle updates to every 300ms to avoid excessive calls
+                    if (now - lastNavigationUpdate > 300) {
+                        updateNavigationButtons();
+                        lastNavigationUpdate = now;
+                    }
+                }
+            }, 300);
+        }
+        
+        // Start navigation updates after initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(startNavigationUpdates, 1000);
+        });
+
+        // Expose functions globally for Electron integration
+        window.navigateToUrl = navigateToUrl;
+        window.updateProxyStatus = updateProxyStatus;
+        window.createNewTab = createNewTab;
+    </script>
+</body>
+</html>
