@@ -275,6 +275,68 @@ ipcMain.handle('delete-profile', async (event, profileId) => {
   }
 });
 
+// FIX: Add missing profile:open handler
+ipcMain.handle('profile:open', async (event, profileId, options = {}) => {
+  try {
+    log.info('Opening profile:', profileId, options);
+    
+    let profile = null;
+    if (profileId && profilesData[profileId]) {
+      profile = profilesData[profileId];
+      currentProfile = profile;
+    } else {
+      // Load profile from file if not in memory
+      try {
+        const profilePath = path.join(__dirname, '..', 'profile-data', `${profileId}.json`);
+        const profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
+        profile = profileData;
+        profilesData[profileId] = profileData;
+        currentProfile = profile;
+      } catch (error) {
+        log.error('Profile not found:', profileId);
+        return { success: false, error: 'Profile not found' };
+      }
+    }
+    
+    // Create new browser window with enhanced fingerprint spoofing
+    const browserWindow = new BrowserWindow({
+      width: profile?.viewport?.width || 1920,
+      height: profile?.viewport?.height || 1080,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        webSecurity: true,
+        preload: path.join(__dirname, 'enhanced-webview-preload.js')
+      },
+      show: false,
+      title: `BeastBrowser - ${profile.name || profileId}`
+    });
+
+    // Apply enhanced fingerprint spoofing before loading
+    if (profile) {
+      await fingerprintManager.generateAdvancedFingerprintScript(
+        profile.platform || 'windows',
+        options.proxyConfig?.host || null,
+        profile
+      );
+    }
+
+    const url = options.url || profile?.startingUrl || 'https://google.com';
+    browserWindow.loadURL(url);
+    
+    browserWindow.once('ready-to-show', () => {
+      browserWindow.show();
+    });
+
+    log.info('Profile browser window opened:', profileId);
+    return { success: true, message: 'Profile opened successfully' };
+    
+  } catch (error) {
+    log.error('Failed to open profile:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Browser session management
 ipcMain.handle('launch-browser-session', async (event, options = {}) => {
   try {
@@ -377,4 +439,4 @@ ipcMain.handle('get-app-info', async () => {
   };
 });
 
-log.info('BeastBrowser Enhanced Edition started');
+log.info('BeastBrowser Enhanced Edition started with all IPC handlers registered');
