@@ -7,15 +7,6 @@ const { EnhancedFingerprintManager } = require('./enhanced-fingerprint-manager')
 // Initialize enhanced fingerprint manager
 const fingerprintManager = new EnhancedFingerprintManager();
 
-// CRITICAL: Set app name to match browser fingerprint instead of "Electron Application"
-app.setName('Google Chrome');
-app.setPath('userData', path.join(app.getPath('appData'), 'Google', 'Chrome', 'User Data'));
-
-// Override app details to match Chrome
-if (process.platform === 'win32') {
-  app.setAppUserModelId('com.google.Chrome');
-}
-
 // Configure logging
 log.transports.file.level = 'info';
 log.transports.console.level = 'debug';
@@ -23,6 +14,13 @@ log.transports.console.level = 'debug';
 let mainWindow;
 let profilesData = {};
 let currentProfile = null;
+
+// CRITICAL: Override app name to hide Electron
+app.setName('Google Chrome');
+app.setVersion('121.0.6167.139');
+
+// Override process title to hide Electron
+process.title = 'Google Chrome';
 
 // Load profiles data
 async function loadProfiles() {
@@ -64,11 +62,10 @@ function createWindow() {
     icon: path.join(__dirname, 'free.ico'),
     show: false,
     titleBarStyle: 'default',
-    // CRITICAL: Set window title to match browser instead of Electron
     title: 'Google Chrome'
   });
 
-  // CRITICAL: Override user agent for main window to match Chrome
+  // Override user agent for main window
   mainWindow.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
   // Load the UI
@@ -82,14 +79,14 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    log.info('BeastBrowser main window ready - App name set to Google Chrome');
+    log.info('BeastBrowser main window ready - Electron name hidden');
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // Set up menu with Chrome-like branding
+  // Set up menu
   const template = [
     {
       label: 'File',
@@ -129,13 +126,13 @@ function createWindow() {
       label: 'Help',
       submenu: [
         {
-          label: 'About Chrome',
+          label: 'About Google Chrome',
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
               title: 'About Google Chrome',
-              message: 'Google Chrome',
-              detail: 'Version 121.0.6167.139 (Official Build) (64-bit)\nAdvanced Anti-Detection Browser with Enhanced Fingerprint Spoofing'
+              message: 'Google Chrome v121.0.6167.139',
+              detail: 'Advanced Web Browser with Enhanced Privacy Features'
             });
           }
         }
@@ -289,48 +286,44 @@ ipcMain.handle('delete-profile', async (event, profileId) => {
   }
 });
 
-// FIX: Add missing profile:open handler
+// FIXED: Profile opening with proper fingerprint injection
 ipcMain.handle('profiles:open', async (event, profile, options = {}) => {
   try {
     log.info('Opening profile:', profile, options);
     
-    let profileData = profile;
-    if (typeof profile === 'string') {
-      // Load profile by ID
-      if (profilesData[profile]) {
-        profileData = profilesData[profile];
-      } else {
-        try {
-          const profilePath = path.join(__dirname, '..', 'profile-data', `${profile}.json`);
-          profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
-          profilesData[profile] = profileData;
-        } catch (error) {
-          log.error('Profile not found:', profile);
-          return { success: false, error: 'Profile not found' };
-        }
-      }
-    }
-    
-    // Determine platform-specific browser name and user agent
-    const platform = profileData.platform || 'windows';
+    // Determine platform for proper browser name spoofing
+    const platform = profile.platform || 'windows';
     let browserName = 'Google Chrome';
-    let userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
     
-    if (platform === 'android') {
+    if (platform === 'macos') {
+      browserName = 'Google Chrome';
+    } else if (platform === 'android') {
       browserName = 'Chrome Mobile';
-      userAgent = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36';
     } else if (platform === 'ios') {
       browserName = 'Safari';
-      userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
-    } else if (platform === 'macos') {
-      browserName = 'Google Chrome';
-      userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
     }
     
-    // Create new browser window with platform-specific branding
+    // Get platform-specific profile data
+    const platformProfile = fingerprintManager.fingerprintProfiles[platform] || fingerprintManager.fingerprintProfiles.windows;
+    const selectedProfile = {
+      platform: fingerprintManager.selectRandom(platformProfile.platforms),
+      vendor: fingerprintManager.selectRandom(platformProfile.vendors),
+      userAgent: profile.userAgent || fingerprintManager.selectRandom(platformProfile.userAgents),
+      screen: profile.screen || fingerprintManager.selectRandom(platformProfile.screens),
+      webglVendor: fingerprintManager.selectRandom(platformProfile.webgl.vendors),
+      webglRenderer: fingerprintManager.selectRandom(platformProfile.webgl.renderers),
+      hardwareConcurrency: fingerprintManager.selectRandom(platformProfile.hardwareConcurrency),
+      deviceMemory: fingerprintManager.selectRandom(platformProfile.deviceMemory),
+      languages: fingerprintManager.selectRandom(platformProfile.languages),
+      maxTouchPoints: platformProfile.maxTouchPoints || 0,
+      timezone: 'America/New_York',
+      timezoneOffset: -300
+    };
+    
+    // Create new browser window with enhanced fingerprint spoofing
     const browserWindow = new BrowserWindow({
-      width: profileData?.viewport?.width || (platform === 'android' || platform === 'ios' ? 393 : 1920),
-      height: profileData?.viewport?.height || (platform === 'android' || platform === 'ios' ? 851 : 1080),
+      width: selectedProfile.screen.width,
+      height: selectedProfile.screen.height,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -338,30 +331,34 @@ ipcMain.handle('profiles:open', async (event, profile, options = {}) => {
         preload: path.join(__dirname, 'enhanced-webview-preload.js')
       },
       show: false,
-      title: `${browserName} - ${profileData.name || profileData.id}`,
-      icon: path.join(__dirname, 'free.ico')
+      title: browserName,
+      titleBarStyle: 'default'
     });
 
-    // CRITICAL: Set user agent to match platform
-    browserWindow.webContents.setUserAgent(userAgent);
+    // Set proper user agent
+    browserWindow.webContents.setUserAgent(selectedProfile.userAgent);
 
-    // Apply enhanced fingerprint spoofing before loading
-    if (profileData) {
-      await fingerprintManager.generateAdvancedFingerprintScript(
-        platform,
-        options.proxyConfig?.host || null,
-        profileData
-      );
-    }
+    // CRITICAL: Inject profile data into the page before loading
+    browserWindow.webContents.on('dom-ready', () => {
+      const profileScript = `
+        try {
+          sessionStorage.setItem('beastbrowser_profile', ${JSON.stringify(JSON.stringify(selectedProfile))});
+          console.log('🎯 Profile data injected:', ${JSON.stringify(selectedProfile)});
+        } catch (error) {
+          console.error('Failed to inject profile data:', error);
+        }
+      `;
+      browserWindow.webContents.executeJavaScript(profileScript);
+    });
 
-    const url = options.url || profileData?.startingUrl || 'https://google.com';
+    const url = options.url || profile?.startingUrl || 'https://google.com';
     browserWindow.loadURL(url);
     
     browserWindow.once('ready-to-show', () => {
       browserWindow.show();
     });
 
-    log.info('Profile browser window opened with proper branding:', profileData.id || profileData.name);
+    log.info('Profile browser window opened with fingerprint spoofing:', profile.id);
     return { success: true, message: 'Profile opened successfully' };
     
   } catch (error) {
@@ -381,26 +378,20 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
       currentProfile = profile;
     }
     
-    // Determine platform-specific browser name and user agent
+    // Determine browser name based on platform
     const platform = profile?.platform || 'windows';
     let browserName = 'Google Chrome';
-    let userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
     
     if (platform === 'android') {
       browserName = 'Chrome Mobile';
-      userAgent = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36';
     } else if (platform === 'ios') {
       browserName = 'Safari';
-      userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
-    } else if (platform === 'macos') {
-      browserName = 'Google Chrome';
-      userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
     }
     
     // Create new browser window with enhanced fingerprint spoofing
     const browserWindow = new BrowserWindow({
-      width: profile?.viewport?.width || (platform === 'android' || platform === 'ios' ? 393 : 1920),
-      height: profile?.viewport?.height || (platform === 'android' || platform === 'ios' ? 851 : 1080),
+      width: profile?.viewport?.width || 1920,
+      height: profile?.viewport?.height || 1080,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -408,20 +399,14 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
         preload: path.join(__dirname, 'enhanced-webview-preload.js')
       },
       show: false,
-      title: browserName,
-      icon: path.join(__dirname, 'free.ico')
+      title: browserName
     });
 
-    // CRITICAL: Set user agent to match platform
-    browserWindow.webContents.setUserAgent(userAgent);
-
-    // Apply enhanced fingerprint spoofing before loading
+    // Set proper user agent
     if (profile) {
-      await fingerprintManager.generateAdvancedFingerprintScript(
-        profile.platform || 'windows',
-        proxyConfig?.host || null,
-        profile
-      );
+      const platformProfile = fingerprintManager.fingerprintProfiles[platform] || fingerprintManager.fingerprintProfiles.windows;
+      const userAgent = profile.userAgent || platformProfile.userAgents[0];
+      browserWindow.webContents.setUserAgent(userAgent);
     }
 
     browserWindow.loadURL(url);
@@ -430,7 +415,7 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
       browserWindow.show();
     });
 
-    log.info('Browser session launched with proper branding:', { profileId, url, browserName });
+    log.info('Browser session launched with hidden Electron name:', { profileId, url });
     return { success: true, message: 'Browser session launched' };
     
   } catch (error) {
@@ -442,10 +427,7 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
 // Proxy management
 ipcMain.handle('test-proxy', async (event, proxyConfig) => {
   try {
-    // Test proxy connection
     log.info('Testing proxy:', proxyConfig);
-    
-    // Get geolocation with proxy
     const geoData = await fingerprintManager.getIPGeolocation(proxyConfig.host);
     
     return { 
@@ -464,7 +446,6 @@ ipcMain.handle('set-anti-detection', async (event, settings) => {
   try {
     log.info('Anti-detection settings updated:', settings);
     
-    // Apply settings globally
     if (settings.enabled) {
       await fingerprintManager.generateAdvancedFingerprintScript(
         settings.platform || 'windows',
@@ -480,17 +461,17 @@ ipcMain.handle('set-anti-detection', async (event, settings) => {
   }
 });
 
-// App info - Return Chrome-like info instead of Electron
+// App info - HIDE ELECTRON
 ipcMain.handle('get-app-info', async () => {
   return {
     version: '121.0.6167.139',
     name: 'Google Chrome',
     platform: process.platform,
     arch: process.arch,
-    electronVersion: '121.0.6167.139', // Hide real Electron version
-    nodeVersion: process.versions.node,
+    electronVersion: undefined,
+    nodeVersion: undefined,
     chromeVersion: '121.0.6167.139'
   };
 });
 
-log.info('BeastBrowser Enhanced Edition started - App name set to Google Chrome');
+log.info('Google Chrome Enhanced Edition started - Electron name hidden');
