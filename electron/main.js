@@ -7,6 +7,15 @@ const { EnhancedFingerprintManager } = require('./enhanced-fingerprint-manager')
 // Initialize enhanced fingerprint manager
 const fingerprintManager = new EnhancedFingerprintManager();
 
+// CRITICAL: Set app name to match browser fingerprint instead of "Electron Application"
+app.setName('Google Chrome');
+app.setPath('userData', path.join(app.getPath('appData'), 'Google', 'Chrome', 'User Data'));
+
+// Override app details to match Chrome
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.google.Chrome');
+}
+
 // Configure logging
 log.transports.file.level = 'info';
 log.transports.console.level = 'debug';
@@ -54,8 +63,13 @@ function createWindow() {
     },
     icon: path.join(__dirname, 'free.ico'),
     show: false,
-    titleBarStyle: 'default'
+    titleBarStyle: 'default',
+    // CRITICAL: Set window title to match browser instead of Electron
+    title: 'Google Chrome'
   });
+
+  // CRITICAL: Override user agent for main window to match Chrome
+  mainWindow.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
   // Load the UI
   const isDev = process.env.NODE_ENV === 'development';
@@ -68,14 +82,14 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    log.info('BeastBrowser main window ready');
+    log.info('BeastBrowser main window ready - App name set to Google Chrome');
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  // Set up menu
+  // Set up menu with Chrome-like branding
   const template = [
     {
       label: 'File',
@@ -115,13 +129,13 @@ function createWindow() {
       label: 'Help',
       submenu: [
         {
-          label: 'About BeastBrowser',
+          label: 'About Chrome',
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'About BeastBrowser',
-              message: 'BeastBrowser v2.0',
-              detail: 'Advanced Anti-Detection Browser with Enhanced Fingerprint Spoofing'
+              title: 'About Google Chrome',
+              message: 'Google Chrome',
+              detail: 'Version 121.0.6167.139 (Official Build) (64-bit)\nAdvanced Anti-Detection Browser with Enhanced Fingerprint Spoofing'
             });
           }
         }
@@ -276,32 +290,47 @@ ipcMain.handle('delete-profile', async (event, profileId) => {
 });
 
 // FIX: Add missing profile:open handler
-ipcMain.handle('profile:open', async (event, profileId, options = {}) => {
+ipcMain.handle('profiles:open', async (event, profile, options = {}) => {
   try {
-    log.info('Opening profile:', profileId, options);
+    log.info('Opening profile:', profile, options);
     
-    let profile = null;
-    if (profileId && profilesData[profileId]) {
-      profile = profilesData[profileId];
-      currentProfile = profile;
-    } else {
-      // Load profile from file if not in memory
-      try {
-        const profilePath = path.join(__dirname, '..', 'profile-data', `${profileId}.json`);
-        const profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
-        profile = profileData;
-        profilesData[profileId] = profileData;
-        currentProfile = profile;
-      } catch (error) {
-        log.error('Profile not found:', profileId);
-        return { success: false, error: 'Profile not found' };
+    let profileData = profile;
+    if (typeof profile === 'string') {
+      // Load profile by ID
+      if (profilesData[profile]) {
+        profileData = profilesData[profile];
+      } else {
+        try {
+          const profilePath = path.join(__dirname, '..', 'profile-data', `${profile}.json`);
+          profileData = JSON.parse(await fs.readFile(profilePath, 'utf8'));
+          profilesData[profile] = profileData;
+        } catch (error) {
+          log.error('Profile not found:', profile);
+          return { success: false, error: 'Profile not found' };
+        }
       }
     }
     
-    // Create new browser window with enhanced fingerprint spoofing
+    // Determine platform-specific browser name and user agent
+    const platform = profileData.platform || 'windows';
+    let browserName = 'Google Chrome';
+    let userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    
+    if (platform === 'android') {
+      browserName = 'Chrome Mobile';
+      userAgent = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36';
+    } else if (platform === 'ios') {
+      browserName = 'Safari';
+      userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
+    } else if (platform === 'macos') {
+      browserName = 'Google Chrome';
+      userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    }
+    
+    // Create new browser window with platform-specific branding
     const browserWindow = new BrowserWindow({
-      width: profile?.viewport?.width || 1920,
-      height: profile?.viewport?.height || 1080,
+      width: profileData?.viewport?.width || (platform === 'android' || platform === 'ios' ? 393 : 1920),
+      height: profileData?.viewport?.height || (platform === 'android' || platform === 'ios' ? 851 : 1080),
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -309,26 +338,30 @@ ipcMain.handle('profile:open', async (event, profileId, options = {}) => {
         preload: path.join(__dirname, 'enhanced-webview-preload.js')
       },
       show: false,
-      title: `BeastBrowser - ${profile.name || profileId}`
+      title: `${browserName} - ${profileData.name || profileData.id}`,
+      icon: path.join(__dirname, 'free.ico')
     });
 
+    // CRITICAL: Set user agent to match platform
+    browserWindow.webContents.setUserAgent(userAgent);
+
     // Apply enhanced fingerprint spoofing before loading
-    if (profile) {
+    if (profileData) {
       await fingerprintManager.generateAdvancedFingerprintScript(
-        profile.platform || 'windows',
+        platform,
         options.proxyConfig?.host || null,
-        profile
+        profileData
       );
     }
 
-    const url = options.url || profile?.startingUrl || 'https://google.com';
+    const url = options.url || profileData?.startingUrl || 'https://google.com';
     browserWindow.loadURL(url);
     
     browserWindow.once('ready-to-show', () => {
       browserWindow.show();
     });
 
-    log.info('Profile browser window opened:', profileId);
+    log.info('Profile browser window opened with proper branding:', profileData.id || profileData.name);
     return { success: true, message: 'Profile opened successfully' };
     
   } catch (error) {
@@ -348,18 +381,39 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
       currentProfile = profile;
     }
     
+    // Determine platform-specific browser name and user agent
+    const platform = profile?.platform || 'windows';
+    let browserName = 'Google Chrome';
+    let userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    
+    if (platform === 'android') {
+      browserName = 'Chrome Mobile';
+      userAgent = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36';
+    } else if (platform === 'ios') {
+      browserName = 'Safari';
+      userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1';
+    } else if (platform === 'macos') {
+      browserName = 'Google Chrome';
+      userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    }
+    
     // Create new browser window with enhanced fingerprint spoofing
     const browserWindow = new BrowserWindow({
-      width: profile?.viewport?.width || 1920,
-      height: profile?.viewport?.height || 1080,
+      width: profile?.viewport?.width || (platform === 'android' || platform === 'ios' ? 393 : 1920),
+      height: profile?.viewport?.height || (platform === 'android' || platform === 'ios' ? 851 : 1080),
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
         webSecurity: true,
         preload: path.join(__dirname, 'enhanced-webview-preload.js')
       },
-      show: false
+      show: false,
+      title: browserName,
+      icon: path.join(__dirname, 'free.ico')
     });
+
+    // CRITICAL: Set user agent to match platform
+    browserWindow.webContents.setUserAgent(userAgent);
 
     // Apply enhanced fingerprint spoofing before loading
     if (profile) {
@@ -376,7 +430,7 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
       browserWindow.show();
     });
 
-    log.info('Browser session launched:', { profileId, url });
+    log.info('Browser session launched with proper branding:', { profileId, url, browserName });
     return { success: true, message: 'Browser session launched' };
     
   } catch (error) {
@@ -426,17 +480,17 @@ ipcMain.handle('set-anti-detection', async (event, settings) => {
   }
 });
 
-// App info
+// App info - Return Chrome-like info instead of Electron
 ipcMain.handle('get-app-info', async () => {
   return {
-    version: app.getVersion(),
-    name: app.getName(),
+    version: '121.0.6167.139',
+    name: 'Google Chrome',
     platform: process.platform,
     arch: process.arch,
-    electronVersion: process.versions.electron,
+    electronVersion: '121.0.6167.139', // Hide real Electron version
     nodeVersion: process.versions.node,
-    chromeVersion: process.versions.chrome
+    chromeVersion: '121.0.6167.139'
   };
 });
 
-log.info('BeastBrowser Enhanced Edition started with all IPC handlers registered');
+log.info('BeastBrowser Enhanced Edition started - App name set to Google Chrome');
