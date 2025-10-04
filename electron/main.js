@@ -4,6 +4,13 @@ const fs = require('fs').promises;
 const log = require('electron-log');
 const { EnhancedFingerprintManager } = require('./enhanced-fingerprint-manager');
 
+// CRITICAL: Set app name BEFORE app.whenReady()
+app.setName('Google Chrome');
+app.setVersion('121.0.6167.139');
+
+// Override process title to hide Electron
+process.title = 'Google Chrome';
+
 // Initialize enhanced fingerprint manager
 const fingerprintManager = new EnhancedFingerprintManager();
 
@@ -14,13 +21,6 @@ log.transports.console.level = 'debug';
 let mainWindow;
 let profilesData = {};
 let currentProfile = null;
-
-// CRITICAL: Override app name to hide Electron
-app.setName('Google Chrome');
-app.setVersion('121.0.6167.139');
-
-// Override process title to hide Electron
-process.title = 'Google Chrome';
 
 // Load profiles data
 async function loadProfiles() {
@@ -303,27 +303,10 @@ ipcMain.handle('profiles:open', async (event, profile, options = {}) => {
       browserName = 'Safari';
     }
     
-    // Get platform-specific profile data
-    const platformProfile = fingerprintManager.fingerprintProfiles[platform] || fingerprintManager.fingerprintProfiles.windows;
-    const selectedProfile = {
-      platform: fingerprintManager.selectRandom(platformProfile.platforms),
-      vendor: fingerprintManager.selectRandom(platformProfile.vendors),
-      userAgent: profile.userAgent || fingerprintManager.selectRandom(platformProfile.userAgents),
-      screen: profile.screen || fingerprintManager.selectRandom(platformProfile.screens),
-      webglVendor: fingerprintManager.selectRandom(platformProfile.webgl.vendors),
-      webglRenderer: fingerprintManager.selectRandom(platformProfile.webgl.renderers),
-      hardwareConcurrency: fingerprintManager.selectRandom(platformProfile.hardwareConcurrency),
-      deviceMemory: fingerprintManager.selectRandom(platformProfile.deviceMemory),
-      languages: fingerprintManager.selectRandom(platformProfile.languages),
-      maxTouchPoints: platformProfile.maxTouchPoints || 0,
-      timezone: 'America/New_York',
-      timezoneOffset: -300
-    };
-    
     // Create new browser window with enhanced fingerprint spoofing
     const browserWindow = new BrowserWindow({
-      width: selectedProfile.screen.width,
-      height: selectedProfile.screen.height,
+      width: profile?.viewport?.width || 1920,
+      height: profile?.viewport?.height || 1080,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -335,20 +318,223 @@ ipcMain.handle('profiles:open', async (event, profile, options = {}) => {
       titleBarStyle: 'default'
     });
 
-    // Set proper user agent
-    browserWindow.webContents.setUserAgent(selectedProfile.userAgent);
+    // CRITICAL: Set proper user agent and inject fingerprint script
+    browserWindow.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
-    // CRITICAL: Inject profile data into the page before loading
-    browserWindow.webContents.on('dom-ready', () => {
-      const profileScript = `
-        try {
-          sessionStorage.setItem('beastbrowser_profile', ${JSON.stringify(JSON.stringify(selectedProfile))});
-          console.log('🎯 Profile data injected:', ${JSON.stringify(selectedProfile)});
-        } catch (error) {
-          console.error('Failed to inject profile data:', error);
-        }
+    // CRITICAL: Inject comprehensive fingerprint spoofing script before page load
+    browserWindow.webContents.on('dom-ready', async () => {
+      const fingerprintScript = `
+        (function() {
+          'use strict';
+          
+          console.log('🛡️ BeastBrowser Enhanced Fingerprint Spoofing Active');
+          
+          // CRITICAL: Hide all Electron traces
+          delete window.process;
+          delete window.global;
+          delete window.Buffer;
+          delete window.setImmediate;
+          delete window.clearImmediate;
+          delete window.__dirname;
+          delete window.__filename;
+          delete window.module;
+          delete window.require;
+          delete window.electronAPI;
+          delete window.electron;
+          delete window.ipcRenderer;
+          
+          // 1. CRITICAL: Navigator Properties Override
+          const navigatorProps = {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            appName: 'Netscape',
+            appVersion: '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            appCodeName: 'Mozilla',
+            platform: 'Win32',
+            vendor: 'Google Inc.',
+            vendorSub: '',
+            product: 'Gecko',
+            productSub: '20030107',
+            hardwareConcurrency: 8,
+            deviceMemory: 8,
+            maxTouchPoints: 0,
+            language: 'en-US',
+            languages: ['en-US', 'en'],
+            webdriver: undefined,
+            cookieEnabled: true,
+            onLine: true,
+            doNotTrack: null,
+            pdfViewerEnabled: true
+          };
+
+          Object.keys(navigatorProps).forEach(prop => {
+            try {
+              Object.defineProperty(navigator, prop, {
+                get: function() { return navigatorProps[prop]; },
+                configurable: false,
+                enumerable: true
+              });
+            } catch(e) {
+              console.warn('Navigator property override failed:', prop, e.message);
+            }
+          });
+
+          // 2. CRITICAL: UserAgentData Override with correct Chrome 121 brands
+          const userAgentData = {
+            brands: [
+              { brand: "Not A(Brand", version: "99" },
+              { brand: "Google Chrome", version: "121" },
+              { brand: "Chromium", version: "121" }
+            ],
+            mobile: false,
+            platform: "Windows",
+            getHighEntropyValues: async function(hints) {
+              const values = {
+                architecture: "x86",
+                bitness: "64",
+                brands: this.brands,
+                fullVersionList: this.brands,
+                mobile: false,
+                model: "",
+                platform: "Windows",
+                platformVersion: "10.0.0",
+                uaFullVersion: "121.0.6167.139",
+                wow64: false
+              };
+              return Object.fromEntries(hints.map(hint => [hint, values[hint]]));
+            }
+          };
+
+          Object.defineProperty(navigator, 'userAgentData', {
+            get: function() { return userAgentData; },
+            configurable: false,
+            enumerable: true
+          });
+
+          // 3. CRITICAL: Screen Properties Override
+          const screenProps = {
+            width: 1920,
+            height: 1080,
+            availWidth: 1920,
+            availHeight: 1040,
+            colorDepth: 24,
+            pixelDepth: 24
+          };
+
+          Object.keys(screenProps).forEach(prop => {
+            try {
+              Object.defineProperty(screen, prop, {
+                get: function() { return screenProps[prop]; },
+                configurable: false,
+                enumerable: true
+              });
+            } catch(e) {
+              console.warn('Screen property override failed:', prop, e.message);
+            }
+          });
+
+          // 4. CRITICAL: WebGL Override
+          if (window.WebGLRenderingContext) {
+            const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {
+              switch(parameter) {
+                case 37445: // UNMASKED_VENDOR_WEBGL
+                  return 'Google Inc. (NVIDIA)';
+                case 37446: // UNMASKED_RENDERER_WEBGL
+                  return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0)';
+                case 7936: // VERSION
+                  return 'OpenGL ES 2.0 (ANGLE 2.1.0 (NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0))';
+                case 7937: // SHADING_LANGUAGE_VERSION
+                  return 'OpenGL ES GLSL ES 1.0 (ANGLE 2.1.0 (NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0))';
+                default:
+                  return originalGetParameter.call(this, parameter);
+              }
+            };
+          }
+
+          if (window.WebGL2RenderingContext) {
+            const originalGetParameter2 = WebGL2RenderingContext.prototype.getParameter;
+            WebGL2RenderingContext.prototype.getParameter = function(parameter) {
+              switch(parameter) {
+                case 37445: // UNMASKED_VENDOR_WEBGL
+                  return 'Google Inc. (NVIDIA)';
+                case 37446: // UNMASKED_RENDERER_WEBGL
+                  return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0)';
+                case 7936: // VERSION
+                  return 'OpenGL ES 3.0 (ANGLE 2.1.0 (NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0))';
+                case 7937: // SHADING_LANGUAGE_VERSION
+                  return 'OpenGL ES GLSL ES 3.0 (ANGLE 2.1.0 (NVIDIA GeForce GTX 1060 Direct3D11 vs_5_0 ps_5_0))';
+                default:
+                  return originalGetParameter2.call(this, parameter);
+              }
+            };
+          }
+
+          // 5. Remove WebDriver Detection
+          delete window.webdriver;
+          delete window.__webdriver_evaluate;
+          delete window.__selenium_evaluate;
+          delete window.__webdriver_script_fn;
+          delete window.__driver_evaluate;
+          delete window.__webdriver_script_func;
+          delete window.__webdriver_script_function;
+          delete window.__fxdriver_evaluate;
+          delete window.__driver_unwrapped;
+          delete window.__webdriver_unwrapped;
+          delete window.__selenium_unwrapped;
+          delete window.__fxdriver_unwrapped;
+          delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+          delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+          delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+
+          // 6. Chrome Runtime Spoofing
+          if (!window.chrome) {
+            Object.defineProperty(window, 'chrome', {
+              get: function() {
+                return {
+                  runtime: {
+                    onConnect: undefined,
+                    onMessage: undefined
+                  },
+                  loadTimes: function() {
+                    return {
+                      commitLoadTime: Date.now() / 1000 - Math.random() * 100,
+                      connectionInfo: 'http/1.1',
+                      finishDocumentLoadTime: Date.now() / 1000 - Math.random() * 50,
+                      finishLoadTime: Date.now() / 1000 - Math.random() * 30,
+                      firstPaintTime: Date.now() / 1000 - Math.random() * 80,
+                      navigationType: 'Other',
+                      requestTime: Date.now() / 1000 - Math.random() * 200,
+                      startLoadTime: Date.now() / 1000 - Math.random() * 150
+                    };
+                  },
+                  csi: function() {
+                    return {
+                      onloadT: Date.now(),
+                      pageT: Date.now() - Math.random() * 1000,
+                      tran: Math.floor(Math.random() * 20)
+                    };
+                  }
+                };
+              },
+              configurable: true
+            });
+          }
+
+          console.log('✅ Enhanced Fingerprint Spoofing Applied Successfully');
+          console.log('📊 Final Fingerprint:', {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            vendor: navigator.vendor,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            screen: screen.width + 'x' + screen.height,
+            userAgentData: navigator.userAgentData,
+            electronHidden: true
+          });
+        })();
       `;
-      browserWindow.webContents.executeJavaScript(profileScript);
+      
+      await browserWindow.webContents.executeJavaScript(fingerprintScript);
     });
 
     const url = options.url || profile?.startingUrl || 'https://google.com';
@@ -378,16 +564,6 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
       currentProfile = profile;
     }
     
-    // Determine browser name based on platform
-    const platform = profile?.platform || 'windows';
-    let browserName = 'Google Chrome';
-    
-    if (platform === 'android') {
-      browserName = 'Chrome Mobile';
-    } else if (platform === 'ios') {
-      browserName = 'Safari';
-    }
-    
     // Create new browser window with enhanced fingerprint spoofing
     const browserWindow = new BrowserWindow({
       width: profile?.viewport?.width || 1920,
@@ -399,15 +575,11 @@ ipcMain.handle('launch-browser-session', async (event, options = {}) => {
         preload: path.join(__dirname, 'enhanced-webview-preload.js')
       },
       show: false,
-      title: browserName
+      title: 'Google Chrome'
     });
 
     // Set proper user agent
-    if (profile) {
-      const platformProfile = fingerprintManager.fingerprintProfiles[platform] || fingerprintManager.fingerprintProfiles.windows;
-      const userAgent = profile.userAgent || platformProfile.userAgents[0];
-      browserWindow.webContents.setUserAgent(userAgent);
-    }
+    browserWindow.webContents.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
     browserWindow.loadURL(url);
     
